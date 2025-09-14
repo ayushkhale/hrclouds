@@ -81,7 +81,7 @@ android {
 
     namespace "com.hrclouds"
     defaultConfig {
-        applicationId "com.hrclouds"
+        applicationId "com.bill365"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

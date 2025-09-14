@@ -1,13 +1,22 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, PanResponder } from 'react-native';
-import Colors from '../../utils/ColorScheme'; 
+import Colors from '../../utils/ColorScheme';
 
-const AttendanceMarker = () => {
+const LeaveCard = ({ title, value }) => (
+  <View style={[styles.card, {
+    borderColor: Colors.primary,
+    backgroundColor: `${Colors.primary}10`,
+  }]}>
+    <Text style={[styles.value, { color: Colors.primary }]}>{value}</Text>
+    <Text style={styles.title}>{title}</Text>
+  </View>
+);
+
+export default function AttendanceSection() {
   const [attendanceMarked, setAttendanceMarked] = useState(false);
   const [containerColor, setContainerColor] = useState(Colors.secondary);
   const swipeAnim = useRef(new Animated.Value(0)).current;
 
-  // Disable panResponder if attendance is already marked
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => !attendanceMarked,
     onMoveShouldSetPanResponder: () => !attendanceMarked,
@@ -19,22 +28,25 @@ const AttendanceMarker = () => {
     onPanResponderRelease: (e, gestureState) => {
       if (gestureState.dx >= 250) {
         setAttendanceMarked(true);
-        setContainerColor('#353160'); 
-        Animated.spring(swipeAnim, {
-          toValue: 0,
-          useNativeDriver: false,
-        }).start();
-      } else {
-        Animated.spring(swipeAnim, {
-          toValue: 0,
-          useNativeDriver: false,
-        }).start();
+        setContainerColor('#353160');
       }
+      Animated.spring(swipeAnim, {
+        toValue: 0,
+        useNativeDriver: false,
+      }).start();
     },
   });
 
   return (
     <View style={styles.container}>
+      <Text style={styles.heading}>Attendance Stats</Text>
+      <View style={styles.grid}>
+      <LeaveCard title="Leave Days" value="0" />
+        <LeaveCard title="Present Days" value="10" />  
+        <LeaveCard title="Absent Days" value="4" />
+        <LeaveCard title="Work Durations" value="09 : 03" />  
+      </View>
+
       <Text style={[styles.attendanceText, attendanceMarked && { opacity: 1 }]}>
         {attendanceMarked ? 'Attendance Marked' : 'Swipe To Mark Your Attendance'}
       </Text>
@@ -59,17 +71,51 @@ const AttendanceMarker = () => {
       </View>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 5,
+    padding: 20,
+  },
+  heading: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: Colors.primary,
+    marginBottom: 10,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 30,
+  },
+  card: {
+    width: '48%',
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 16,
+  },
+  title: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#111',
+    marginTop: 6,
+  },
+  value: {
+    fontSize: 30,
+    fontWeight: '900',
+  },
+  attendanceText: {
+    color: Colors.primary,
+    fontSize: 20,
+    marginBottom: 20,
+    fontWeight: '900',
+    textAlign: 'center',
   },
   buttonContainer: {
     width: '100%',
+    height: 60,
     borderRadius: 10,
     justifyContent: 'center',
     overflow: 'hidden',
@@ -91,13 +137,6 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: Colors.buttonText,
-  },
-  attendanceText: {
-    color: Colors.primary,
-    fontSize: 20,
-    marginBottom: 20,
-    fontWeight: '900',
+    fontWeight: 'bold',
   },
 });
-
-export default AttendanceMarker;

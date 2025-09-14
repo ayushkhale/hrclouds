@@ -1,53 +1,48 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import { View, StyleSheet, Image, TouchableOpacity, Text } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native';
 import Colors from '../utils/ColorScheme';
 
-const Header = () => {
+export default function Header() {
+  const navigation = useNavigation();
+
   return (
     <View style={styles.header}>
-      <View style={styles.profileContainer}>
+      <TouchableOpacity onPress={() => navigation.toggleDrawer()}>
+        <Ionicons name="menu" size={40} color={Colors.primary} />
+      </TouchableOpacity>
+
+      <Text style={styles.sectionTitle}>HR CLOUDS</Text>
+
+      <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
         <Image
-          source={{ uri: 'https://i.pravatar.cc/500' }}
+          source={{ uri: 'https://i.pravatar.cc/700' }}
           style={styles.profileImage}
         />
-        <View>
-          <Text style={styles.welcomeText}>Welcome Employee</Text>
-          <Text style={styles.subText}>Start your work</Text>
-        </View>
-      </View>
-      <Icon name="bell" size={24} color="#fff" />
+      </TouchableOpacity>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: Colors.primary,
-    padding: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 14,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  profileContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   profileImage: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    marginRight: 8,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: Colors.primary
   },
-  welcomeText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  subText: {
-    color: '#e2e8f0',
-    fontSize: 14,
-  },
+  sectionTitle: {
+    color: Colors.primary,
+    fontSize: 20,
+    fontWeight: '900',
+  }
 });
-
-export default Header;

@@ -1,90 +1,145 @@
 import React, { useState } from 'react';
 import {
+  SafeAreaView,
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   Image,
-  SafeAreaView,
+  StyleSheet,
   ScrollView,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Feather';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/Ionicons';
+import Colors from '../../utils/ColorScheme';
+import Fonts from '../../utils/Typography';
+import logo from '../../../assets/logo.jpg';
 
-export default function LoginScreen() {
+export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [hidePassword, setHidePassword] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const validateFields = () => {
+    if (!email || !password) {
+      setErrorMsg('Please fill all fields.');
+      return false;
+    }
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      setErrorMsg('Invalid email format.');
+      return false;
+    }
+    return true;
+  };
+
+  const handleLogin = async () => {
+    setErrorMsg('');
+    if (!validateFields()) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch('https://api.bill365.in/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const status = response.status;
+      const result = await response.json();
+
+      if (status === 200) {
+        Alert.alert('Login Success', 'Welcome back!', [
+          { text: 'Continue', onPress: () => navigation?.navigate?.('Tabs') },
+        ]);
+      } else if (status === 400) {
+        setErrorMsg('Missing email or password.');
+      } else if (status === 401) {
+        setErrorMsg('Invalid credentials.');
+      } else {
+        setErrorMsg('Something went wrong. Try again.');
+      }
+    } catch (err) {
+      setErrorMsg('Network error. Please check your connection.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <Image
-          source={{ uri: 'https://img.icons8.com/ios-filled/100/2D79F3/box.png' }}
-          style={styles.logo}
-        />
-
-        <Text style={styles.welcomeText}>
-          Welcome Back <Text style={styles.wave}>👋</Text>
-        </Text>
-        <Text style={styles.hrText}>to <Text style={styles.hrHighlight}>HR Attendee</Text></Text>
-        <Text style={styles.subText}>Hello there, login to continue</Text>
-
-        <View style={styles.inputBox}>
-          <Text style={styles.label}>Email Address</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="michael.mitc@example.com"
-            keyboardType="email-address"
-          />
+      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingVertical: 10 }} showsVerticalScrollIndicator={false}>
+        <View style={styles.tile}>
+          <Image source={logo} style={styles.logo} />
+          <Text style={styles.bill365Text}>Your Ultimate Billing Solution!</Text>
         </View>
 
-        <View style={styles.inputBox}>
-          <Text style={styles.label}>Password</Text>
-          <View style={styles.passwordField}>
+        {errorMsg !== '' && <Text style={styles.errorText}>{errorMsg}</Text>}
+
+        <View style={styles.inputBlock}>
+          <Text style={styles.label}>Email</Text>
+          <View style={styles.inputWrapper}>
+            <Icon name="mail-outline" size={20} color={Colors.gray} style={styles.icon} />
             <TextInput
-              style={styles.inputPassword}
+              placeholder="Enter Email"
+              placeholderTextColor={Colors.darkGray}
+              style={styles.input}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
+            />
+          </View>
+        </View>
+
+        <View style={styles.inputBlock}>
+          <Text style={styles.label}>Password</Text>
+          <View style={styles.inputWrapper}>
+            <Icon name="lock-closed-outline" size={20} color={Colors.gray} style={styles.icon} />
+            <TextInput
+              placeholder="Enter Password"
+              placeholderTextColor={Colors.midgray}
+              style={styles.input}
+              secureTextEntry={!showPassword}
               value={password}
               onChangeText={setPassword}
-              placeholder="Enter your password"
-              secureTextEntry={hidePassword}
             />
-            <TouchableOpacity onPress={() => setHidePassword(!hidePassword)}>
-              <Icon
-                name={hidePassword ? 'eye-off' : 'eye'}
-                size={20}
-                color="#888"
-              />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              <Icon name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={Colors.gray} />
             </TouchableOpacity>
           </View>
         </View>
 
-        <TouchableOpacity style={styles.forgotBtn}>
-          <Text style={styles.forgotText}>Forgot Password ?</Text>
+        <TouchableOpacity
+          style={[styles.loginButton, { opacity: email && password ? 1 : 0.5 }]}
+          onPress={handleLogin}
+          disabled={loading || !(email && password)}
+        >
+          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.loginButtonText}>Login</Text>}
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.loginBtn}>
-          <Text style={styles.loginText}>Login</Text>
+        <TouchableOpacity onPress={() => navigation?.navigate?.('ForgotPass')} style={styles.forgotContainer}>
+          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
         </TouchableOpacity>
 
-        <View style={styles.dividerWrap}>
-          <View style={styles.line} />
-          <Text style={styles.or}>Or continue with social account</Text>
-          <View style={styles.line} />
-        </View>
-
-        <TouchableOpacity style={styles.googleBtn}>
-          <FontAwesome name="google" size={20} color="#DB4437" />
-          <Text style={styles.googleText}>Google</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.registerWrap}>
-          <Text style={styles.registerText}>
-            Didn’t have an account? <Text style={styles.registerLink}>Register</Text>
+        <Text style={styles.agreeText}>
+          By logging in, you agree to our{' '}
+          <Text style={styles.linkText} onPress={() => Linking.openURL('https://bill365.in/')}>
+            Terms of Service
+          </Text>{' '}
+          &{' '}
+          <Text style={styles.linkText} onPress={() => Linking.openURL('https://bill365.in/')}>
+            Privacy Policy
           </Text>
+          .
+        </Text>
+
+        <TouchableOpacity style={styles.loginRedirectButton} onPress={() => navigation?.navigate?.('Register')}>
+          <Text style={styles.loginRedirectText}>New here? Create Account</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -93,131 +148,86 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: Colors.white,
     flex: 1,
-    backgroundColor: '#fff',
-  },
-  scroll: {
-    paddingHorizontal: 24,
-    paddingTop: 30,
-    paddingBottom: 50,
-    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: '5%',
   },
   logo: {
-    width: 60,
-    height: 60,
-    marginBottom: 25,
+    width: 180,
+    height: 80,
+    marginTop: '20%',
+    alignSelf: 'center',
   },
-  welcomeText: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#000',
+  tile: {
+    alignItems: 'center',
   },
-  wave: {
-    fontSize: 22,
-  },
-  hrText: {
-    fontSize: 22,
-    fontWeight: '600',
-    marginTop: 4,
-  },
-  hrHighlight: {
-    color: '#2D79F3',
-  },
-  subText: {
-    color: '#999',
+  bill365Text: {
     fontSize: 14,
-    marginVertical: 14,
+    fontWeight: '900',
+    color: Colors.primary,
+    textAlign: 'center',
+    marginBottom: '15%',
   },
-  inputBox: {
-    width: '100%',
-    marginBottom: 14,
+  inputBlock: { marginBottom: 8 },
+  label: { fontSize: 14, color: Colors.primary, marginBottom: 10, fontWeight: 800 },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: Colors.gray,
   },
-  label: {
-    color: '#2D79F3',
-    fontSize: 12,
-    marginBottom: 4,
-  },
+  icon: { marginRight: 6 },
   input: {
-    borderWidth: 1,
-    borderColor: '#2D79F3',
-    borderRadius: 10,
-    height: 48,
-    paddingHorizontal: 12,
-  },
-  passwordField: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#2D79F3',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    height: 48,
-  },
-  inputPassword: {
     flex: 1,
-  },
-  forgotBtn: {
-    width: '100%',
-    alignItems: 'flex-end',
-    marginBottom: 20,
-  },
-  forgotText: {
-    color: '#2D79F3',
-    fontSize: 13,
-  },
-  loginBtn: {
-    backgroundColor: '#2D79F3',
     paddingVertical: 14,
-    borderRadius: 10,
-    width: '100%',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  loginText: {
-    color: '#fff',
-    fontWeight: '600',
     fontSize: 16,
+    color: Colors.text,
+    fontFamily: 'Poppins-Bold',
   },
-  dividerWrap: {
-    flexDirection: 'row',
+  loginButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 8,
+    paddingVertical: 10,
     alignItems: 'center',
-    marginVertical: 16,
+    marginTop: 8,
   },
-  line: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#ddd',
+  loginButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontFamily: Fonts.semiBold,
   },
-  or: {
-    marginHorizontal: 10,
-    fontSize: 12,
-    color: '#aaa',
+  forgotContainer: { alignItems: 'flex-end', marginTop: 6 },
+  forgotPasswordText: { color: Colors.primary, fontSize: 14, fontFamily: Fonts.medium },
+  agreeText: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginTop: 40,
+    fontFamily: Fonts.regular,
+    width: '80%',
+    alignSelf: 'center',
   },
-  googleBtn: {
-    flexDirection: 'row',
-    gap: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    height: 48,
-    width: '100%',
-    marginBottom: 30,
+  linkText: {
+    color: Colors.secondary,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+    fontFamily: Fonts.regular,
   },
-  googleText: {
+  loginRedirectButton: { marginTop: 40, alignItems: 'center' },
+  loginRedirectText: {
+    fontFamily: Fonts.regular,
     fontSize: 16,
-    color: '#000',
+    color: Colors.primary,
+    textDecorationLine: 'underline',
   },
-  registerWrap: {
-    alignItems: 'center',
-  },
-  registerText: {
+  errorText: {
+    color: 'red',
     fontSize: 13,
-    color: '#333',
-  },
-  registerLink: {
-    color: '#2D79F3',
-    fontWeight: '500',
+    marginBottom: 20,
+    fontFamily: Fonts.regular,
+    textAlign: 'center',
   },
 });
